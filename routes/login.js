@@ -32,13 +32,13 @@ router.post("/login", async (req, res) => {
     let dataBase = await client.db(dbName);
     let User = await dataBase
       .collection("UserDetails")
-      .findOne({ gmail: req.body.userName });
+      .findOne({ phoneNumber: req.body.phoneNumber });
     console.log(User);
     if (User) {
       // res.json({ message: "User Exsists" });
       const hashComp = await hashCompare(req.body.passWord, User.password);
       if (hashComp) {
-        res.json({ message: "LogIn Success" });
+        res.json({ message: "LogIn Success", nickName: User.userName });
       } else {
         res.json({ message: "InCorrect password" });
       }
