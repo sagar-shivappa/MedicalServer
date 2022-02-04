@@ -15,7 +15,7 @@ router.post("/register", async (req, res) => {
       res.json({ message: "User Exsists" });
     } else {
       const hash = await hashing(req.body.passWord);
-      req.body.password = hash;
+      req.body.passWord = hash;
       let User = await dataBase.collection("UserDetails").insertOne(req.body);
       res.json({ message: "User Account Created" });
     }
@@ -36,9 +36,13 @@ router.post("/login", async (req, res) => {
     console.log(User);
     if (User) {
       // res.json({ message: "User Exsists" });
-      const hashComp = await hashCompare(req.body.passWord, User.password);
+      const hashComp = await hashCompare(req.body.passWord, User.passWord);
       if (hashComp) {
-        res.json({ message: "LogIn Success", nickName: User.userName });
+        res.json({
+          message: "LogIn Success",
+          nickName: User.userName,
+          shopId: User.phoneNumber,
+        });
       } else {
         res.json({ message: "InCorrect password" });
       }
