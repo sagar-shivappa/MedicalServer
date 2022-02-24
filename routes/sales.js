@@ -53,7 +53,7 @@ router.post("/addSales", async (req, res) => {
       );
       res.json({
         message: "Today's Sales Inserted",
-        res: await dataBase.collection("SalesHistory").findOne({
+        data: await dataBase.collection("SalesHistory").findOne({
           selectedDate: req.body.selectedDate,
           owner: req.body.owner,
         }),
