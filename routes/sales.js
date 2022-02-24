@@ -66,6 +66,65 @@ router.post("/addSales", async (req, res) => {
   }
 });
 
+router.post("/updateSales", async (req, res) => {
+  const client = await MongoClient.connect(dbUrl);
+  try {
+    let dataBase = await client.db(dbName);
+    let SalesHistory = await dataBase.collection("SalesHistory").findOne({
+      selectedDate: req.body.selectedDate,
+      owner: req.body.owner,
+    });
+
+    if (SalesHistory) {
+      let updateSales = await dataBase
+        .collection("SalesHistory")
+        .findOneAndReplace(
+          {
+            selectedDate: req.body.selectedDate,
+            owner: req.body.owner,
+          },
+
+          req.body
+        );
+      res.json({
+        message: "Sales Updated",
+        data: await dataBase.collection("SalesHistory").findOne({
+          selectedDate: req.body.selectedDate,
+          owner: req.body.owner,
+        }),
+      });
+    } else {
+      // let response = await dataBase
+      //   .collection("SalesHistory")
+      //   .insertOne(req.body);
+      // let updateSales = await dataBase.collection("SalesHistory").updateOne(
+      //   {
+      //     selectedDate: req.body.selectedDate,
+      //     owner: req.body.owner,
+      //   },
+
+      //   {
+      //     $set: {
+      //       todaysSales: req.body.paymentMoney,
+      //       [`${req.body.paymentType}`]: req.body.paymentMoney,
+      //     },
+      //   }
+      // );
+      res.json({
+        message: "No Data Found",
+        // data: await dataBase.collection("SalesHistory").findOne({
+        //   selectedDate: req.body.selectedDate,
+        //   owner: req.body.owner,
+        // }),
+      });
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    client.close();
+  }
+});
+
 router.post("/getSales", async (req, res) => {
   const client = await MongoClient.connect(dbUrl);
   try {
