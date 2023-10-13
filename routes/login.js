@@ -1,41 +1,36 @@
 var express = require("express");
 var router = express.Router();
 const { hashing, hashCompare } = require("../library/auth");
-const { mongodb, MongoClient, dbUrl, dbName } = require("../dbConfig");
+const dbConfig = require("./../dbConfig");
+const { status } = require("express/lib/response");
 
 /* GET users listing. */
 router.post("/register", async (req, res) => {
-  const client = await MongoClient.connect(dbUrl);
   try {
-    let dataBase = await client.db(dbName);
-    let User = await dataBase
-      .collection("UserDetails")
+    let User = await dbConfig
+      .collectionConnection(process.env.adminCollection)
       .findOne({ gmail: req.body.gmail });
     if (User) {
       res.json({ message: "User Exsists" });
     } else {
       const hash = await hashing(req.body.passWord);
       req.body.passWord = hash;
-      let User = await dataBase.collection("UserDetails").insertOne(req.body);
+      await dbConfig
+        .collectionConnection(process.env.adminCollection)
+        .insertOne(req.body);
       res.json({ message: "User Account Created" });
     }
   } catch (error) {
     console.log(error);
-  } finally {
-    client.close();
   }
 });
 
 router.post("/login", async (req, res) => {
-  const client = await MongoClient.connect(dbUrl);
   try {
-    let dataBase = await client.db(dbName);
-    let User = await dataBase
-      .collection("UserDetails")
+    let User = await dbConfig
+      .collectionConnection(process.env.adminCollection)
       .findOne({ phoneNumber: req.body.phoneNumber });
-    console.log(User);
     if (User) {
-      // res.json({ message: "User Exsists" });
       const hashComp = await hashCompare(req.body.passWord, User.passWord);
       if (hashComp) {
         res.json({
@@ -44,18 +39,13 @@ router.post("/login", async (req, res) => {
           shopId: User.phoneNumber,
         });
       } else {
-        res.json({ message: "InCorrect password" });
+        res.json({ message: "Incorrect password" });
       }
     } else {
-      // const hash = await hashing(req.body.password);
-      // req.body.password = hash;
-      // let User = await dataBase.collection("Register").insertOne(req.body);
-      res.json({ message: "User Doesn't Exsist" });
+      res.status(400).json({ message: "Incorrect password or User" });
     }
   } catch (error) {
     console.log(error);
-  } finally {
-    client.close();
   }
 });
 
